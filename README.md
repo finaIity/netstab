@@ -7,7 +7,7 @@ Please have [Go](https://golang.org) installed before anything.
 ## Build
 
 Use the following commands to build the program:\
-```go mod tidy```\ to add module requirements
+```go mod tidy```\
 ```go mod init netstab.go```\
 ```go build -o netstab```
 
