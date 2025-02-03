@@ -1,5 +1,16 @@
 # netstab
-small Go network stability test
-please  have Go installed before anything
-use go mod init && go  build -o netstab to build the program
-usage: sudo ./netsab <hostname>
+
+A small Go network stability test.
+
+Please have [Go](https://golang.org) installed before anything.
+
+## Build
+
+Use the following commands to build the program:
+```go mod init```
+```go build -o netstab```
+
+## Usage
+
+Run the program with:
+```sudo ./netstab <hostname>```
