@@ -19,7 +19,7 @@ is, and how stable it is over time.
 ## Build
 
 ```sh
-# Dependencies are committed — no init step needed
+# Dependencies are committed so no init step needed
 go build -o netstab
 
 # Statically linked (recommended for distribution or servers)
