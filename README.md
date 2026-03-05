@@ -29,8 +29,60 @@ CGO_ENABLED=0 go build -o netstab
 ## Run
 
 ```sh
-sudo ./netstab             # standard run (~10 s speed test)
-sudo ./netstab --thorough  # longer speed test (~20 s, better for fast connections)
+# Recommended: grant only the required capability, then run without sudo
+sudo setcap cap_net_raw+ep ./netstab
+./netstab
+./netstab --thorough   # longer speed test (~20s, better for fast connections)
+
+# Alternative: run as root
+sudo ./netstab
+sudo ./netstab --thorough
 ```
+<<<<<<< Updated upstream
 Note: use `--thorough` on fast connections (>500 Mbps) where 10 MB transfers complete
 quickly enough that slow-start still has a measurable effect.
+=======
+
+---
+
+## Requirements
+
+- Linux (ICMP and `/proc` interfaces are Linux-specific)
+- Go 1.21 or later
+- `iw` installed for WiFi signal reading (`apt install iw` / `pacman -S iw`)
+- `ethtool` installed for Ethernet link speed (`apt install ethtool`)
+
+---
+
+## Privileges
+
+netstab requires `CAP_NET_RAW` to open a raw ICMP socket. Running the full
+binary as root works but is broader than necessary. The preferred approach is
+to grant only the required capability to the binary:
+
+```sh
+sudo setcap cap_net_raw+ep ./netstab
+./netstab          # no sudo needed after this
+```
+
+With `setcap`, all other code paths (HTTP requests, subprocess calls, file
+reads) run without elevated privileges, reducing the blast radius of any
+hypothetical vulnerability to `CAP_NET_RAW` in a single process rather than
+a full root shell.
+
+Note: `setcap` must be re-applied after each rebuild.
+
+---
+
+## Security notes
+
+- **PATH hijacking (CWE-426):** `iw` and `ethtool` are resolved using a
+  fixed search path (`/usr/sbin:/usr/bin:/sbin:/bin`) rather than the
+  inherited `$PATH`. This prevents a compromised environment from substituting
+  a malicious binary that would execute with elevated privileges.
+- **Response size (CWE-400):** HTTP response bodies from Cloudflare's trace
+  endpoint are capped at 4 KB via `io.LimitReader` to prevent unbounded
+  memory allocation from a misbehaving or malicious server.
+- **No CVEs in dependencies:** `golang.org/x/net v0.51.0` has no reachable
+  vulnerabilities in this call graph as confirmed by `govulncheck`.
+>>>>>>> Stashed changes

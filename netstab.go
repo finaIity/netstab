@@ -29,7 +29,30 @@ const (
 	bufferSize   = 1500
 	cfBase       = "https://speed.cloudflare.com"
 	httpTimeout  = 30 * time.Second
+
+	// systemPATH is a fixed search path used when resolving external tool
+	// binaries. It replaces the inherited $PATH to prevent CWE-426 (Untrusted
+	// Search Path / PATH hijacking): a compromised environment could place a
+	// malicious `iw` or `ethtool` earlier in $PATH, which would otherwise
+	// execute with the elevated privileges this binary requires.
+	systemPATH = "/usr/sbin:/usr/bin:/sbin:/bin"
 )
+
+// lookupTool resolves the absolute path of an external binary using only the
+// fixed systemPATH, then verifies the result is an absolute path. It returns
+// the name unchanged (falling back to Go's standard PATH search) if the binary
+// is not found in systemPATH, so the caller can still surface a meaningful
+// "command not found" error.
+func lookupTool(name string) string {
+	orig := os.Getenv("PATH")
+	os.Setenv("PATH", systemPATH) //nolint:errcheck — no error path on Linux
+	resolved, err := exec.LookPath(name)
+	os.Setenv("PATH", orig) //nolint:errcheck
+	if err != nil || !strings.HasPrefix(resolved, "/") {
+		return name
+	}
+	return resolved
+}
 
 // ── speed test config ─────────────────────────────────────────────────────────
 
@@ -150,7 +173,7 @@ func fetchPublicIP() string {
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 4096))
 	if err != nil {
 		return ""
 	}
@@ -183,7 +206,7 @@ func checkStrength(iface, ifaceType string) strengthResult {
 // /proc/net/wireless is not used because it is absent on modern kernels
 // using cfg80211/mac80211 drivers.
 func wifiSignal(iface string) (int, bool, string) {
-	out, err := exec.Command("iw", "dev", iface, "link").Output()
+	out, err := exec.Command(lookupTool("iw"), "dev", iface, "link").Output()
 	if err != nil {
 		return 0, false, "unavailable"
 	}
@@ -223,7 +246,7 @@ func signalQuality(dbm int) string {
 
 // ethernetSpeed reads the negotiated link speed via ethtool.
 func ethernetSpeed(iface string) int {
-	out, err := exec.Command("ethtool", iface).Output()
+	out, err := exec.Command(lookupTool("ethtool"), iface).Output()
 	if err != nil {
 		return 0
 	}
