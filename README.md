@@ -38,10 +38,8 @@ sudo setcap cap_net_raw+ep ./netstab
 sudo ./netstab
 sudo ./netstab --thorough
 ```
-<<<<<<< Updated upstream
 Note: use `--thorough` on fast connections (>500 Mbps) where 10 MB transfers complete
-quickly enough that slow-start still has a measurable effect.
-=======
+quickly enough that slow-start still has a measurable effect
 
 ---
 
@@ -70,19 +68,4 @@ reads) run without elevated privileges, reducing the blast radius of any
 hypothetical vulnerability to `CAP_NET_RAW` in a single process rather than
 a full root shell.
 
-Note: `setcap` must be re-applied after each rebuild.
-
----
-
-## Security notes
-
-- **PATH hijacking (CWE-426):** `iw` and `ethtool` are resolved using a
-  fixed search path (`/usr/sbin:/usr/bin:/sbin:/bin`) rather than the
-  inherited `$PATH`. This prevents a compromised environment from substituting
-  a malicious binary that would execute with elevated privileges.
-- **Response size (CWE-400):** HTTP response bodies from Cloudflare's trace
-  endpoint are capped at 4 KB via `io.LimitReader` to prevent unbounded
-  memory allocation from a misbehaving or malicious server.
-- **No CVEs in dependencies:** `golang.org/x/net v0.51.0` has no reachable
-  vulnerabilities in this call graph as confirmed by `govulncheck`.
->>>>>>> Stashed changes
+`setcap` must be re-applied after each rebuild.
