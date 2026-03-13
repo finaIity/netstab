@@ -43,16 +43,7 @@ quickly enough that slow-start still has a measurable effect
 
 ---
 
-## Requirements
-
-- Linux (ICMP and `/proc` interfaces are Linux-specific)
-- Go 1.21 or later
-- `iw` installed for WiFi signal reading (`apt install iw` / `pacman -S iw`)
-- `ethtool` installed for Ethernet link speed (`apt install ethtool`)
-
----
-
-## Privileges
+## Note about privileges
 
 netstab requires `CAP_NET_RAW` to open a raw ICMP socket. Running the full
 binary as root works but is broader than necessary. The preferred approach is
